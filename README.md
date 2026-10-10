@@ -1,6 +1,6 @@
 # partiii
 
-A small, mobile-first conversation client for public AT Protocol records. People can write a short post, reply, view a chronological public feed, open a profile, and optionally attach an approximate place related to the post. There are no likes, follower counts, repost counts, ranking, or engagement feed.
+A small, mobile-first conversation client for public AT Protocol records. People can write a short post, reply, view a chronological public feed, open a profile, and optionally attach a place related to the post. There are no likes, follower counts, repost counts, ranking, or engagement feed.
 
 ## Run locally
 
@@ -28,20 +28,20 @@ The schemas are in [`lexicons/`](lexicons/), under the `internet4000.com` namesp
 
 OAuth metadata and authorization requests share the same collection-specific scopes from `src/lib/records.ts`: create and delete Partiii posts and replies. No access to Bluesky posts is requested. Reconnect after upgrading from the previous permissions. Login uses a full-page redirect, then returns to the route where you started. Callback and restore errors appear in the native login dialog.
 
-Coordinates in records are integer millionths of a degree (ATProto does not support floating-point record values). The UI converts these to degrees and rounds selected points to a 0.25-degree grid.
+Coordinates in records are integer millionths of a degree (ATProto does not support floating-point record values). The UI converts these to degrees, preserving six decimal places without snapping to a grid. Existing rounded points remain readable.
 
 The prototype discovers repositories through the public Bluesky relay's collection listing, then reads public records from the PDS named by each DID document. It does not run an indexer or database. This is suitable for a small pilot but is not a complete or guaranteed global index: relay coverage and paging can omit participants. A larger network needs an openly documented, replaceable indexer or multiple independent network views.
 
-The map uses the keyless OpenTopoMap raster tiles already supported by R4, with OpenStreetMap/OpenTopoMap attribution. People explicitly choose a point for the issue, not themselves; coordinates are rounded to 0.25 degrees before writing. The map is optional and no browser geolocation is used.
+The map uses the keyless OpenTopoMap raster tiles already supported by R4, with OpenStreetMap/OpenTopoMap attribution. People can tap the map, drag or keyboard-move a marker, enter coordinates, or explicitly request their device location. Browser geolocation is only requested after clicking “Use my location”; its accuracy is shown, and permission denial and timeouts leave manual selection available. Confirming the picker adds the point to the draft; publishing makes it public.
 
 ## Interface and routes
 
 - `/`: chronological feed.
-- `/map`: full-viewport map; `lat` and `lng` query parameters focus an approximate place.
+- `/map`: full-viewport map; `lat` and `lng` query parameters focus a place.
 - `/post/[did]/[rkey]`: a directly linkable conversation.
 - `/profile/[did]`: a directly linkable profile.
 
-Navigation uses SvelteKit routes and ordinary links. Login and new posts use native `<dialog>` elements opened with `showModal()`, including browser-managed focus, background inertness, and Escape dismissal. Place selection stays inside the post dialog and includes keyboard-accessible coordinate inputs.
+Navigation uses SvelteKit routes and ordinary links. Login, new posts, place selection, post action menus, and the map post list use native `<dialog>` elements opened with `showModal()`, including browser-managed focus, background inertness, and Escape dismissal. Place selection opens a native dialog above the compose dialog; cancelling preserves the previous point and draft. It includes keyboard-accessible coordinates and marker movement.
 
 The shared layout fills the viewport with an automatically sized header and a remaining-space content row. Styles use custom-property tokens, without authored pixel units or `calc()`. The minimal MapLibre styles are maintained locally rather than importing its stylesheet. MapLibre itself still writes pixel-based canvas dimensions and marker transforms at runtime; these are renderer internals.
 

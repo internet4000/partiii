@@ -1,9 +1,11 @@
 <script lang="ts">
+	import NativeDialog from './NativeDialog.svelte';
 	import { useApp } from '$lib/app.svelte';
 	import { deleteRecord, type Post } from '$lib/atproto';
 	import { postPath, profilePath } from '$lib/records';
 	let { post, thread = false, ondelete = () => {} }: { post: Post; thread?: boolean; ondelete?: () => void } = $props();
 	const app = useApp();
+	let menuOpen = $state(false);
 	let notice = $state('');
 	let error = $state('');
 	let deleting = $state(false);
@@ -11,8 +13,10 @@
 		const link = new URL(postPath(post.uri), location.origin).href;
 		try { await navigator.clipboard.writeText(link); notice = app.msg.copied; }
 		catch { notice = link; }
+		menuOpen = false;
 	}
 	function share() {
+		menuOpen = false;
 		const link = new URL(postPath(post.uri), location.origin).href;
 		window.open(`https://bsky.app/intent/compose?text=${encodeURIComponent(link)}`, '_blank', 'noopener,noreferrer');
 	}
@@ -20,7 +24,7 @@
 		deleting = true; error = '';
 		try { await deleteRecord(post.uri); app.forget(post.uri); ondelete(); }
 		catch { error = app.msg.deleteError; }
-		finally { deleting = false; }
+		finally { deleting = false; menuOpen = false; }
 	}
 </script>
 
@@ -28,10 +32,7 @@
 	<header class="post-header">
 		<a class="identity" href={profilePath(post.authorDid)}>{post.handle}</a>
 		<time datetime={post.createdAt}>{Number.isFinite(Date.parse(post.createdAt)) ? new Intl.DateTimeFormat(app.locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(post.createdAt)) : ''}</time>
-		<details class="post-actions"><summary aria-label={app.msg.menu}>•••</summary><div class="action-menu">
-			<button onclick={copy}>{app.msg.copyLink}</button><button onclick={share}>{app.msg.shareBluesky}</button>
-			{#if app.account?.did === post.authorDid}<button disabled={deleting} onclick={remove}>{app.msg.delete}</button>{/if}
-		</div></details>
+		<button class="post-actions" aria-label={app.msg.menu} aria-haspopup="dialog" onclick={() => menuOpen = true}>•••</button>
 	</header>
 	{#if thread}<p class="post-text" dir="auto">{post.text}</p>{:else}<a class="post-text post-link" dir="auto" href={postPath(post.uri)}>{post.text}</a>{/if}
 	{#if post.place}<a class="place-link" href={`/map?lat=${post.place.latitude}&lng=${post.place.longitude}`}>{app.msg.location}: {post.place.label || `${post.place.latitude}°, ${post.place.longitude}°`}</a>{/if}
@@ -39,3 +40,9 @@
 	{#if notice}<p class="muted" role="status">{notice}</p>{/if}
 	{#if error}<p class="error" role="alert">{error}</p>{/if}
 </article>
+
+<NativeDialog open={menuOpen} title={app.msg.menu} class="menu-dialog" onclose={() => menuOpen = false}>
+	<header class="dialog-heading"><h2>{app.msg.menu}</h2><button onclick={() => menuOpen = false} aria-label={app.msg.close}>×</button></header>
+	<div class="stack"><button onclick={copy}>{app.msg.copyLink}</button><button onclick={share}>{app.msg.shareBluesky}</button>
+	{#if app.account?.did === post.authorDid}<button disabled={deleting} onclick={remove}>{app.msg.delete}</button>{/if}</div>
+</NativeDialog>

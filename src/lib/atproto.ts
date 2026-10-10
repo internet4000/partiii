@@ -267,15 +267,6 @@ export async function loadPost(uri: string): Promise<Post | null> {
 	return { uri: record.uri, cid: record.cid, authorDid: did, handle, text: record.value.text, createdAt: record.value.createdAt, place: readPlace(record.value.place), replies: replyAuthors.flat().sort((a, b) => a.createdAt.localeCompare(b.createdAt)) };
 }
 
-export function approximatePlace(latitude: number, longitude: number, label = ''): Place {
-	const grid = 0.25;
-	return {
-		...(label.trim() ? { label: label.trim().slice(0, 80) } : {}),
-		latitude: Math.max(-90, Math.min(90, Math.round(latitude / grid) * grid)),
-		longitude: Math.max(-180, Math.min(180, Math.round(longitude / grid) * grid))
-	};
-}
-
 function readPlace(value: unknown): Place | undefined {
 	if (!value || typeof value !== 'object') return;
 	const point = value as Record<string, unknown>;

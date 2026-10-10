@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	let { open, title, onclose, children }: {
-		open: boolean; title: string; onclose: () => void; children: Snippet;
+	let { open, title, onclose, children, class: className = '' }: {
+		class?: string; open: boolean; title: string; onclose: () => void; children: Snippet;
 	} = $props();
 	let element: HTMLDialogElement;
 	$effect(() => {
@@ -11,6 +11,6 @@
 	});
 </script>
 
-<dialog bind:this={element} aria-label={title} onclose={() => { if (!element.open) onclose(); }}>
+<dialog class={className} bind:this={element} aria-label={title} onclose={() => { if (!element.open) onclose(); }}>
 	{@render children()}
 </dialog>

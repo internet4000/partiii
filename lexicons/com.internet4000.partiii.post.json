@@ -25,7 +25,7 @@
           },
           "place": {
             "type": "object",
-            "description": "An optional approximate place related to the contribution, never the author's home location.",
+            "description": "An optional public point explicitly chosen by the author.",
             "required": [
               "latitude",
               "longitude"
@@ -39,13 +39,13 @@
                 "type": "integer",
                 "minimum": -90000000,
                 "maximum": 90000000,
-                "description": "Degrees multiplied by 1,000,000; rounded to 0.25 degrees before writing."
+                "description": "Degrees multiplied by 1,000,000; precision to six decimal places."
               },
               "longitude": {
                 "type": "integer",
                 "minimum": -180000000,
                 "maximum": 180000000,
-                "description": "Degrees multiplied by 1,000,000; rounded to 0.25 degrees before writing."
+                "description": "Degrees multiplied by 1,000,000; precision to six decimal places."
               }
             }
           }
