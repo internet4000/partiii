@@ -1,0 +1,29 @@
+{
+  "lexicon": 1,
+  "id": "com.radio4000.partiii.post",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A short public contribution to a Common Ground conversation.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["text", "createdAt"],
+        "properties": {
+          "text": { "type": "string", "minLength": 1, "maxLength": 1000 },
+          "createdAt": { "type": "string", "format": "datetime" },
+          "place": {
+            "type": "object",
+            "description": "An optional approximate place related to the contribution, never the author's home location.",
+            "required": ["latitude", "longitude"],
+            "properties": {
+              "label": { "type": "string", "maxLength": 80 },
+              "latitude": { "type": "number", "minimum": -90, "maximum": 90 },
+              "longitude": { "type": "number", "minimum": -180, "maximum": 180 }
+            }
+          }
+        }
+      }
+    }
+  }
+}

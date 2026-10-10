@@ -2,33 +2,45 @@ export type Locale = 'en' | 'de';
 
 const messages = {
 	en: {
-		brand: 'Common ground', feed: 'Recent conversations', prompt: 'What’s something we could make better?',
-		write: 'Write what could be better…', share: 'Share', reply: 'Reply', replies: 'replies',
-		back: 'Back to conversations', profile: 'Your contributions', empty: 'No conversations yet. Start one.',
-		language: 'Language', demo: 'A small, local prototype', report: 'Report', copy: 'Copy link',
-		profileLink: 'Profile', feedLink: 'Conversations', send: 'Post reply', name: 'You',
-		noReplies: 'Be the first to reply with context, a question, or an idea.', justNow: 'Just now',
-		newest: 'Newest first', placeReply: 'Write a reply…', copied: 'Copied',
-		principle: 'A place to think together.', principleText: 'Share what could be better. Listen, learn, and help where you can.',
-		noLikes: 'No likes. No rankings. Just conversations, in the order they happened.',
-		localOnly: 'This prototype saves posts only in this browser. Other people cannot see them yet.',
-		reportUnavailable: 'Reporting is not connected in this local prototype.'
+		feed: 'Recent', map: 'Map', profile: 'Profile', prompt: 'What could be better?', write: 'Write a post…',
+		post: 'Post', reply: 'Reply', replies: 'replies', connect: 'Connect account', handle: 'Your Bluesky handle or domain',
+		connecting: 'Connecting…', signOut: 'Sign out', connected: 'Connected as', newest: 'Newest first',
+		noPosts: 'No posts yet.', noLocationPosts: 'No posts with a place yet.', noReplies: 'Start the conversation.',
+		writeReply: 'Write a reply…', sendReply: 'Reply', profilePosts: 'Posts', place: 'Add an approximate place',
+		placeHelp: 'This marks the subject’s area, not your location. It is rounded to about 25 km.',
+		removePlace: 'Remove place', choosePlace: 'Tap the map to mark an approximate place',
+		cancel: 'Cancel', savePlace: 'Use this place', location: 'Place', openPost: 'Open conversation',
+		copyLink: 'Copy link', copied: 'Copied', delete: 'Delete your post', report: 'Report this post',
+		reportHelp: 'Report this post to your app or PDS moderator.', reported: 'Report guidance',
+		language: 'Language', loading: 'Loading public posts…', loadError: 'Could not load public posts. Try again.',
+		tryAgain: 'Try again', signInFirst: 'Connect an account to write.', signInError: 'Could not connect. Check the handle and try again.',
+		postError: 'Could not publish this post. Try again.', replyError: 'Could not publish this reply. Try again.',
+		deleteError: 'Could not delete this post.', deleted: 'Post deleted.', emptyReply: 'Write a reply first.',
+		shareBluesky: 'Share to Bluesky', noProfilePosts: 'No posts on this profile yet.',
+		external: 'Open profile', mapUnavailable: 'The map could not be loaded.', unknown: 'Unknown account',
+		close: 'Close', back: 'Back', characterCount: 'characters', menu: 'Post actions', signInTitle: 'Write and reply',
+		refresh: 'Refresh', privacy: 'Place is optional and only included when you choose it.'
 	},
 	de: {
-		brand: 'Gemeinsam besser', feed: 'Neue Gespräche', prompt: 'Was könnten wir besser machen?',
-		write: 'Schreib, was besser sein könnte …', share: 'Veröffentlichen', reply: 'Antworten', replies: 'Antworten',
-		back: 'Zurück zu den Gesprächen', profile: 'Deine Beiträge', empty: 'Noch keine Gespräche. Fang eins an.',
-		language: 'Sprache', demo: 'Ein kleiner Prototyp auf diesem Gerät', report: 'Melden', copy: 'Link kopieren',
-		profileLink: 'Profil', feedLink: 'Gespräche', send: 'Antwort senden', name: 'Du',
-		noReplies: 'Antworte zuerst mit Kontext, einer Frage oder einer Idee.', justNow: 'Gerade eben',
-		newest: 'Neueste zuerst', placeReply: 'Schreib eine Antwort …', copied: 'Kopiert',
-		principle: 'Ein Ort zum gemeinsamen Nachdenken.', principleText: 'Teile, was besser sein könnte. Hör zu, lerne und hilf, wo du kannst.',
-		noLikes: 'Keine Likes. Keine Ranglisten. Nur Gespräche in ihrer zeitlichen Reihenfolge.',
-		localOnly: 'Beiträge werden nur in diesem Browser gespeichert. Andere können sie noch nicht sehen.',
-		reportUnavailable: 'Meldungen sind im lokalen Prototyp nicht verbunden.'
+		feed: 'Neu', map: 'Karte', profile: 'Profil', prompt: 'Was könnte besser sein?', write: 'Schreib einen Beitrag …',
+		post: 'Veröffentlichen', reply: 'Antworten', replies: 'Antworten', connect: 'Konto verbinden', handle: 'Bluesky-Handle oder Domain',
+		connecting: 'Verbinde …', signOut: 'Abmelden', connected: 'Verbunden als', newest: 'Neueste zuerst',
+		noPosts: 'Noch keine Beiträge.', noLocationPosts: 'Noch keine Beiträge mit Ortsangabe.', noReplies: 'Beginne das Gespräch.',
+		writeReply: 'Schreib eine Antwort …', sendReply: 'Antworten', profilePosts: 'Beiträge', place: 'Ungefähren Ort hinzufügen',
+		placeHelp: 'Markiert den Ort des Themas, nicht deinen Standort. Die Angabe wird auf etwa 25 km gerundet.',
+		removePlace: 'Ort entfernen', choosePlace: 'Tippe auf die Karte, um einen ungefähren Ort zu markieren',
+		cancel: 'Abbrechen', savePlace: 'Ort übernehmen', location: 'Ort', openPost: 'Gespräch öffnen',
+		copyLink: 'Link kopieren', copied: 'Kopiert', delete: 'Eigenen Beitrag löschen', report: 'Beitrag melden',
+		reportHelp: 'Melde diesen Beitrag beim Moderator deiner App oder deines PDS.', reported: 'Meldehinweis',
+		language: 'Sprache', loading: 'Öffentliche Beiträge werden geladen …', loadError: 'Beiträge konnten nicht geladen werden. Versuch es erneut.',
+		tryAgain: 'Erneut versuchen', signInFirst: 'Verbinde ein Konto, um zu schreiben.', signInError: 'Verbindung fehlgeschlagen. Prüfe den Handle und versuche es erneut.',
+		postError: 'Beitrag konnte nicht veröffentlicht werden. Versuch es erneut.', replyError: 'Antwort konnte nicht veröffentlicht werden. Versuch es erneut.',
+		deleteError: 'Beitrag konnte nicht gelöscht werden.', deleted: 'Beitrag gelöscht.', emptyReply: 'Schreib zuerst eine Antwort.',
+		shareBluesky: 'Auf Bluesky teilen', noProfilePosts: 'Dieses Profil hat noch keine Beiträge.',
+		external: 'Profil öffnen', mapUnavailable: 'Die Karte konnte nicht geladen werden.', unknown: 'Unbekanntes Konto',
+		close: 'Schließen', back: 'Zurück', characterCount: 'Zeichen', menu: 'Beitragsaktionen', signInTitle: 'Schreiben und antworten',
+		refresh: 'Aktualisieren', privacy: 'Der Ort ist freiwillig und wird nur mit deiner Auswahl gespeichert.'
 	}
 } as const;
 
-export function t(locale: Locale) {
-	return messages[locale];
-}
+export function t(locale: Locale) { return messages[locale]; }

@@ -1,0 +1,20 @@
+{
+  "lexicon": 1,
+  "id": "com.radio4000.partiii.reply",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A reply to a Common Ground post.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["post", "text", "createdAt"],
+        "properties": {
+          "post": { "type": "ref", "ref": "com.atproto.repo.strongRef" },
+          "text": { "type": "string", "minLength": 1, "maxLength": 1000 },
+          "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    }
+  }
+}
