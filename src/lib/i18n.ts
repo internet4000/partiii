@@ -2,8 +2,9 @@ export type Locale = 'en' | 'de';
 
 const messages = {
 	en: {
+		newPost: 'Write', conversation: 'Conversation', navigation: 'Navigation', skip: 'Skip to content', latitude: 'Latitude', longitude: 'Longitude', notFound: 'This post is unavailable.',
 		feed: 'Recent', map: 'Map', profile: 'Profile', prompt: 'What could be better?', write: 'Write a post…',
-		post: 'Post', reply: 'Reply', replies: 'replies', connect: 'Connect account', handle: 'Your Bluesky handle or domain',
+		post: 'Post', reply: 'Reply', replies: 'replies', connect: 'Log in', handle: 'Your Bluesky handle or domain',
 		connecting: 'Connecting…', signOut: 'Sign out', connected: 'Connected as', newest: 'Newest first',
 		noPosts: 'No posts yet.', noLocationPosts: 'No posts with a place yet.', noReplies: 'Start the conversation.',
 		writeReply: 'Write a reply…', sendReply: 'Reply', profilePosts: 'Posts', place: 'Add an approximate place',
@@ -22,8 +23,9 @@ const messages = {
 		refresh: 'Refresh', privacy: 'Place is optional and only included when you choose it.'
 	},
 	de: {
+		newPost: 'Schreiben', conversation: 'Gespräch', navigation: 'Navigation', skip: 'Zum Inhalt', latitude: 'Breitengrad', longitude: 'Längengrad', notFound: 'Dieser Beitrag ist nicht verfügbar.',
 		feed: 'Neu', map: 'Karte', profile: 'Profil', prompt: 'Was könnte besser sein?', write: 'Schreib einen Beitrag …',
-		post: 'Veröffentlichen', reply: 'Antworten', replies: 'Antworten', connect: 'Konto verbinden', handle: 'Bluesky-Handle oder Domain',
+		post: 'Veröffentlichen', reply: 'Antworten', replies: 'Antworten', connect: 'Anmelden', handle: 'Bluesky-Handle oder Domain',
 		connecting: 'Verbinde …', signOut: 'Abmelden', connected: 'Verbunden als', newest: 'Neueste zuerst',
 		noPosts: 'Noch keine Beiträge.', noLocationPosts: 'Noch keine Beiträge mit Ortsangabe.', noReplies: 'Beginne das Gespräch.',
 		writeReply: 'Schreib eine Antwort …', sendReply: 'Antworten', profilePosts: 'Beiträge', place: 'Ungefähren Ort hinzufügen',

@@ -1,0 +1,35 @@
+{
+  "lexicon": 1,
+  "id": "com.internet4000.partiii.reply",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A reply to a Partiii post.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": [
+          "post",
+          "text",
+          "createdAt"
+        ],
+        "properties": {
+          "post": {
+            "type": "ref",
+            "ref": "com.atproto.repo.strongRef"
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10000,
+            "maxGraphemes": 1000
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    }
+  }
+}

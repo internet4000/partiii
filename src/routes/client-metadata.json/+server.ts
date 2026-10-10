@@ -1,3 +1,4 @@
+import { OAUTH_SCOPE } from '$lib/records';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = ({ url }) => {
@@ -8,7 +9,7 @@ export const GET: RequestHandler = ({ url }) => {
 		client_uri: base,
 		redirect_uris: [`${base}/`],
 		response_types: ['code'],
-		scope: 'atproto',
+		scope: OAUTH_SCOPE,
 		grant_types: ['authorization_code', 'refresh_token'],
 		token_endpoint_auth_method: 'none',
 		application_type: 'web',

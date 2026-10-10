@@ -1,6 +1,7 @@
 {
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	"name": "partiii",
+	"build": { "command": "npm run build" },
 	"main": ".svelte-kit/cloudflare/_worker.js",
 	"compatibility_date": "2026-10-10",
 	"compatibility_flags": ["nodejs_compat"],

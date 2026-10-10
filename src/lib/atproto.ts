@@ -1,9 +1,8 @@
 import type { BrowserOAuthClient as BrowserOAuthClientType, OAuthSession } from '@atproto/oauth-client-browser';
 
-export const POST_COLLECTION = 'com.radio4000.partiii.post';
-export const REPLY_COLLECTION = 'com.radio4000.partiii.reply';
+import { POST_COLLECTION, REPLY_COLLECTION, OAUTH_SCOPE } from './records';
+export { POST_COLLECTION, REPLY_COLLECTION } from './records';
 export const PUBLIC_RELAY = 'https://relay1.us-west.bsky.network';
-const PUBLIC_API = 'https://public.api.bsky.app';
 
 export type Place = { label?: string; latitude: number; longitude: number };
 export type Reply = { uri: string; cid: string; authorDid: string; handle: string; text: string; createdAt: string; postUri: string };
@@ -17,22 +16,12 @@ let oauthClientId = '';
 let authenticatedFetch: OAuthSession['fetchHandler'] | null = null;
 let account: Account | null = null;
 
-function authorizedCollections() {
-	return [POST_COLLECTION, REPLY_COLLECTION].map((identifier) => ({
-		type: 'atproto_repo',
-		actions: ['create', 'update', 'delete'],
-		identifier
-	}));
-}
-
-function callbackUrl() {
-	return `${window.location.origin}/`;
-}
-
 async function getClientId() {
 	if (window.location.protocol !== 'https:') {
 		const { buildLoopbackClientId } = await import('@atproto/oauth-client-browser');
-		return buildLoopbackClientId({ hostname: window.location.hostname, port: window.location.port, pathname: '/' });
+		const clientId = new URL(buildLoopbackClientId({ hostname: window.location.hostname, port: window.location.port, pathname: '/' }));
+		clientId.searchParams.set('scope', OAUTH_SCOPE);
+		return clientId.href;
 	}
 	const url = new URL('/client-metadata.json', window.location.origin);
 	const response = await fetch(url, { method: 'HEAD', cache: 'no-store' });
@@ -41,31 +30,53 @@ async function getClientId() {
 }
 
 async function activateSession(oauthSession: OAuthSession) {
-	authenticatedFetch = oauthSession.fetchHandler;
+	const { scope } = await oauthSession.getTokenInfo();
+	const grants = scope.split(' ');
+	const allowed = [POST_COLLECTION, REPLY_COLLECTION].every((collection) =>
+		['create', 'delete'].every((action) => grants.some((grant) => {
+			const [resource, query] = grant.split('?');
+			const params = new URLSearchParams(query);
+			const collections = resource.startsWith('repo:') ? [resource.slice(5)] : resource === 'repo' ? params.getAll('collection') : [];
+			const actions = params.getAll('action');
+			return collections.includes(collection) && (!actions.length || actions.includes(action));
+		}))
+	);
+	if (!allowed) {
+		throw new Error('Reconnect to allow writing Partiii posts and replies.');
+	}
+	authenticatedFetch = oauthSession.fetchHandler.bind(oauthSession);
 	const handle = await getHandle(oauthSession.did).catch(() => oauthSession.did);
 	account = { did: oauthSession.did, handle };
 	localStorage.setItem('partiii-atproto-did', oauthSession.did);
 	return account;
 }
 
-export async function initializeAccount() {
-	if (oauthClient) return account;
-	const { BrowserOAuthClient } = await import('@atproto/oauth-client-browser');
-	oauthClientId = await getClientId();
-	oauthClient = await BrowserOAuthClient.load({ clientId: oauthClientId, handleResolver: 'https://bsky.social' });
+let initialization: Promise<Account | null> | undefined;
+
+export function initializeAccount(): Promise<Account | null> {
+	return initialization ??= initialize().catch((error) => {
+		initialization = undefined;
+		throw error;
+	});
+}
+
+async function initialize() {
+	if (!oauthClient) {
+		const { BrowserOAuthClient } = await import('@atproto/oauth-client-browser');
+		oauthClientId = await getClientId();
+		oauthClient = await BrowserOAuthClient.load({ clientId: oauthClientId, handleResolver: 'https://bsky.social' });
+	}
 	const params = oauthClient.readCallbackParams();
 	if (params) {
-		const { session } = await oauthClient.initCallback(params, callbackUrl() as never);
+		const { session } = await oauthClient.initCallback(params);
 		await activateSession(session);
-		history.replaceState(null, '', window.location.pathname + window.location.hash);
 	} else {
 		const did = localStorage.getItem('partiii-atproto-did');
 		if (did) {
-			try {
-				const session = await oauthClient.restore(did);
-				if (session) await activateSession(session);
-			} catch {
+			try { await activateSession(await oauthClient.restore(did)); }
+			catch (error) {
 				localStorage.removeItem('partiii-atproto-did');
+				throw error;
 			}
 		}
 	}
@@ -73,12 +84,11 @@ export async function initializeAccount() {
 }
 
 export async function signIn(handle: string) {
-	if (!oauthClient) await initializeAccount();
+	// A failed restore must not prevent starting a fresh authorization.
+	try { await initializeAccount(); } catch { if (!oauthClient) throw new Error('Could not load sign-in configuration.'); }
 	if (!oauthClient) throw new Error('Sign-in is not available.');
-	await oauthClient.signIn(handle.trim(), {
-		redirect_uri: callbackUrl() as never,
-		authorization_details: authorizedCollections()
-	});
+	const input = handle.trim().replace(/^@/, '');
+	await oauthClient.signInRedirect(input, { scope: OAUTH_SCOPE });
 }
 
 export async function signOut() {
@@ -86,6 +96,7 @@ export async function signOut() {
 	account = null;
 	authenticatedFetch = null;
 	localStorage.removeItem('partiii-atproto-did');
+	initialization = undefined;
 }
 
 export function currentAccount() { return account; }
@@ -96,9 +107,8 @@ function requireAgent() {
 }
 
 async function writeXrpc<T>(method: string, body: Record<string, unknown>): Promise<T> {
-	const { fetchHandler, account } = requireAgent();
-	const { pds } = await getPdsAndHandle(account.did);
-	const response = await fetchHandler(`${pds}/xrpc/${method}`, {
+	const { fetchHandler } = requireAgent();
+	const response = await fetchHandler(`/xrpc/${method}`, {
 		method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json' }, body: JSON.stringify(body)
 	});
 	if (!response.ok) throw new Error(`${method} failed (${response.status})`);
@@ -108,7 +118,7 @@ async function writeXrpc<T>(method: string, body: Record<string, unknown>): Prom
 export async function createPost(text: string, place?: Place) {
 	const { account } = requireAgent();
 	const createdAt = new Date().toISOString();
-	const record = { $type: POST_COLLECTION, text: text.trim(), createdAt, ...(place ? { place } : {}) };
+	const record = { $type: POST_COLLECTION, text: text.trim(), createdAt, ...(place ? { place: { ...place, latitude: Math.round(place.latitude * 1_000_000), longitude: Math.round(place.longitude * 1_000_000) } } : {}) };
 	const saved = await writeXrpc<{ uri: string; cid: string }>('com.atproto.repo.createRecord', { repo: account.did, collection: POST_COLLECTION, record });
 	return { ...saved, createdAt };
 }
@@ -209,7 +219,7 @@ export async function loadNetworkPage(cursors: NetworkCursor = {}): Promise<Netw
 			posts.push({
 				uri: row.uri, cid: row.cid, authorDid: author.did, handle: author.handle,
 				text: row.value.text, createdAt: row.value.createdAt,
-				place: row.value.place as Place | undefined, replies: []
+				place: readPlace(row.value.place), replies: []
 			});
 		}
 		for (const row of author.replies as { uri: string; cid: string; value: Record<string, unknown> }[]) {
@@ -231,7 +241,7 @@ export async function loadProfile(did: string) {
 	const profilePosts: Post[] = [];
 	for (const row of posts) {
 		if (typeof row.value.text !== 'string' || typeof row.value.createdAt !== 'string') continue;
-		profilePosts.push({ uri: row.uri, cid: row.cid, authorDid: did, handle, text: row.value.text, createdAt: row.value.createdAt, place: row.value.place as Place | undefined, replies: [] });
+		profilePosts.push({ uri: row.uri, cid: row.cid, authorDid: did, handle, text: row.value.text, createdAt: row.value.createdAt, place: readPlace(row.value.place), replies: [] });
 	}
 	return { did, handle, posts: profilePosts, replies: replyRows };
 }
@@ -254,7 +264,7 @@ export async function loadPost(uri: string): Promise<Post | null> {
 			});
 		} catch { return [] as Reply[]; }
 	});
-	return { uri: record.uri, cid: record.cid, authorDid: did, handle, text: record.value.text, createdAt: record.value.createdAt, place: record.value.place as Place | undefined, replies: replyAuthors.flat().sort((a, b) => a.createdAt.localeCompare(b.createdAt)) };
+	return { uri: record.uri, cid: record.cid, authorDid: did, handle, text: record.value.text, createdAt: record.value.createdAt, place: readPlace(record.value.place), replies: replyAuthors.flat().sort((a, b) => a.createdAt.localeCompare(b.createdAt)) };
 }
 
 export function approximatePlace(latitude: number, longitude: number, label = ''): Place {
@@ -264,4 +274,14 @@ export function approximatePlace(latitude: number, longitude: number, label = ''
 		latitude: Math.max(-90, Math.min(90, Math.round(latitude / grid) * grid)),
 		longitude: Math.max(-180, Math.min(180, Math.round(longitude / grid) * grid))
 	};
+}
+
+function readPlace(value: unknown): Place | undefined {
+	if (!value || typeof value !== 'object') return;
+	const point = value as Record<string, unknown>;
+	if (!Number.isInteger(point.latitude) || !Number.isInteger(point.longitude)) return;
+	const latitude = Number(point.latitude) / 1_000_000;
+	const longitude = Number(point.longitude) / 1_000_000;
+	if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return;
+	return { latitude, longitude, ...(typeof point.label === 'string' ? { label: point.label } : {}) };
 }
