@@ -7,3 +7,27 @@
 @media(max-width:380px){.topbar{padding:0 11px}.header-actions{gap:7px}.account-chip{max-width:155px}.app-layout{padding-left:10px;padding-right:10px}.form-bottom{gap:7px}.place-button{font-size:11px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 .reply-delete{margin-left:auto;border:0;border-radius:8px;background:transparent;color:var(--muted);font-size:11px;padding:9px}.reply-delete:hover{background:#f3f5f3;color:#a43d36}
+
+/* The workspace owns the viewport; content columns adapt to whatever space remains. */
+html,body,#svelte{width:100%;height:100%;min-height:0;overflow:hidden}
+.app-shell{width:100%;height:100dvh;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.topbar{width:100%;height:64px;min-height:64px;flex:none;padding-inline:clamp(16px,2.5vw,42px)}
+.app-layout{width:100%;max-width:none;height:calc(100dvh - 64px);min-height:0;flex:1;margin:0;grid-template-columns:minmax(160px,17vw) minmax(0,1fr) minmax(200px,22vw);justify-content:stretch;gap:clamp(16px,2vw,32px);padding:clamp(18px,2.2vw,34px) clamp(16px,2.5vw,42px);overflow:hidden}
+.desktop-nav{min-width:0}
+main{width:100%;min-width:0;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.side-panel{min-width:0}
+.app-layout:has(.map-post-list) main{display:grid;grid-template-rows:auto minmax(220px,1fr) minmax(0,.62fr);gap:10px;overflow:hidden}
+.app-layout:has(.map-post-list) .page-heading{margin:0}
+.app-layout:has(.map-post-list) .map-shell{height:100%;min-height:0}
+.app-layout:has(.map-post-list) .map-post-list{min-height:0;overflow:auto;overscroll-behavior:contain}
+.place-dialog .map-shell{height:min(42vh,420px);min-height:240px}
+@media(max-width:1000px){.app-layout{grid-template-columns:minmax(145px,18vw) minmax(0,1fr);gap:clamp(14px,2vw,24px)}.side-panel{display:none}}
+@media(max-width:700px){
+	.topbar{height:58px;min-height:58px;padding-inline:14px}
+	.app-layout{display:block;width:100%;height:calc(100dvh - 58px - 66px - env(safe-area-inset-bottom));min-height:0;padding:15px 12px 16px;overflow-x:hidden;overflow-y:auto}
+	main{height:auto;overflow:visible}
+	.app-layout:has(.map-post-list) main{height:100%;grid-template-rows:auto minmax(220px,1fr) minmax(0,.62fr);overflow:hidden}
+	.app-layout:has(.map-post-list) .map-post-list{padding-bottom:8px}
+	.mobile-nav{min-height:66px;padding-bottom:calc(5px + env(safe-area-inset-bottom))}
+	.place-dialog .map-shell{height:42vh;min-height:230px}
+}

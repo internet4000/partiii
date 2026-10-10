@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 	import type { Post } from '$lib/atproto';
 	let { posts = [], selectable = false, selected = undefined, onselect = () => {}, onpost = () => {} }: {
 		posts?: Post[]; selectable?: boolean; selected?: { latitude: number; longitude: number };
@@ -26,6 +27,7 @@
 		}
 	}
 	let maplibregl: typeof import('maplibre-gl');
+	let resizeObserver: ResizeObserver | undefined;
 
 	$effect(() => {
 		posts; selected; ready;
@@ -38,24 +40,28 @@
 			try {
 				maplibregl = await import('maplibre-gl');
 				if (disposed) return;
+				maplibregl.setWorkerUrl(maplibreWorkerUrl);
+				const variant = 'light_all';
 				const mapInstance = new maplibregl.Map({
 					container: target,
 					style: {
 						version: 8,
-						sources: { carto: { type: 'raster', tiles: ['https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', 'https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', 'https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'], tileSize: 256, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>' } },
+						sources: { carto: { type: 'raster', tiles: ['a', 'b', 'c'].map((host) => `https://${host}.basemaps.cartocdn.com/${variant}/{z}/{x}/{y}{r}.png`), tileSize: 256, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>' } },
 						layers: [{ id: 'carto', type: 'raster', source: 'carto' }]
 					},
 					center: selected ? [selected.longitude, selected.latitude] : [0, 18],
 					zoom: selected ? 3 : 1.4,
 					attributionControl: { compact: true }
 				});
-				mapInstance.setProjection({ type: 'globe' });
 				map = mapInstance;
-				mapInstance.on('load', () => { ready = true; renderMarkers(); });
+				mapInstance.on('load', () => { mapInstance.setProjection({ type: 'globe' }); ready = true; renderMarkers(); mapInstance.resize(); });
 				mapInstance.on('click', (event) => { if (selectable) onselect({ latitude: event.lngLat.lat, longitude: event.lngLat.lng }); });
+				resizeObserver = new ResizeObserver(() => requestAnimationFrame(() => mapInstance.resize()));
+				resizeObserver.observe(target);
+				requestAnimationFrame(() => mapInstance.resize());
 			} catch { error = true; }
 		})();
-		return () => { disposed = true; markerList.forEach((marker) => marker.remove()); map?.remove(); };
+		return () => { disposed = true; resizeObserver?.disconnect(); markerList.forEach((marker) => marker.remove()); map?.remove(); };
 	});
 </script>
 
@@ -65,7 +71,7 @@
 </div>
 
 <style>
-	.map-shell{position:relative;overflow:hidden;border-radius:20px;background:#e9eee9;min-height:260px;height:clamp(300px,48vh,580px)}
+	.map-shell{position:relative;overflow:hidden;border-radius:20px;background:#e9eee9;min-height:260px;height:100%;width:100%}
 	.map-canvas{position:absolute;inset:0}
 	.map-shell :global(.maplibregl-ctrl-attrib){font-size:10px}
 	.map-shell :global(.maplibregl-ctrl-group){border-radius:10px;box-shadow:0 2px 10px #26352e18}

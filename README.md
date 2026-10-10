@@ -13,7 +13,7 @@ For local AT Protocol OAuth, use `http://localhost` or `http://127.0.0.1`; the b
 
 ## Deploy to Cloudflare Workers
 
-This project uses SvelteKit's Cloudflare adapter. Build with `npm run build`, then deploy the generated Worker with `npx wrangler deploy`. Cloudflare's Git integration should run the build before the deploy step; configure the build command as `npm run build` if it does not already do so. `wrangler.jsonc` names the Worker `partiii`.
+This project uses SvelteKit's Cloudflare adapter. In **Worker → Settings → Builds**, set **Build command** to `npm run build` and **Deploy command** to `npx wrangler deploy`. The build command must run first because it generates `.svelte-kit/cloudflare/_worker.js`, the entry point configured in `wrangler.jsonc`. If Wrangler says that file is missing, the build command was skipped. Alternatively, use `npm run deploy` as the deploy command; that script builds before deploying. `wrangler.jsonc` names the Worker `partiii`.
 
 ## AT Protocol records
 
