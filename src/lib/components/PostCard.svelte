@@ -21,6 +21,7 @@
 		window.open(`https://bsky.app/intent/compose?text=${encodeURIComponent(link)}`, '_blank', 'noopener,noreferrer');
 	}
 	async function remove() {
+		if (!confirm(app.msg.confirmDelete)) return;
 		deleting = true; error = '';
 		try { await deleteRecord(post.uri); app.forget(post.uri); ondelete(); }
 		catch { error = app.msg.deleteError; }
@@ -32,17 +33,17 @@
 	<header class="post-header">
 		<a class="identity" href={profilePath(post.authorDid)}>{post.handle}</a>
 		<time datetime={post.createdAt}>{Number.isFinite(Date.parse(post.createdAt)) ? new Intl.DateTimeFormat(app.locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(post.createdAt)) : ''}</time>
-		<button class="post-actions" aria-label={app.msg.menu} aria-haspopup="dialog" onclick={() => menuOpen = true}>•••</button>
+		<button type="button" class="post-actions" aria-label={app.msg.menu} aria-haspopup="dialog" onclick={() => menuOpen = true}>•••</button>
 	</header>
 	{#if thread}<p class="post-text" dir="auto">{post.text}</p>{:else}<a class="post-text post-link" dir="auto" href={postPath(post.uri)}>{post.text}</a>{/if}
 	{#if post.place}<a class="place-link" href={`/map?lat=${post.place.latitude}&lng=${post.place.longitude}`}>{app.msg.location}: {post.place.label || `${post.place.latitude}°, ${post.place.longitude}°`}</a>{/if}
-	{#if !thread}<a class="reply-link" href={postPath(post.uri)}>{app.msg.reply}</a>{/if}
+	{#if !thread}<a class="reply-link" href={postPath(post.uri)}>{app.msg.reply}{post.replies.length ? ` (${post.replies.length})` : ''}</a>{/if}
 	{#if notice}<p class="muted" role="status">{notice}</p>{/if}
 	{#if error}<p class="error" role="alert">{error}</p>{/if}
 </article>
 
 <NativeDialog open={menuOpen} title={app.msg.menu} class="menu-dialog" onclose={() => menuOpen = false}>
-	<header class="dialog-heading"><h2>{app.msg.menu}</h2><button onclick={() => menuOpen = false} aria-label={app.msg.close}>×</button></header>
-	<div class="stack"><button onclick={copy}>{app.msg.copyLink}</button><button onclick={share}>{app.msg.shareBluesky}</button>
-	{#if app.account?.did === post.authorDid}<button disabled={deleting} onclick={remove}>{app.msg.delete}</button>{/if}</div>
+	<header class="dialog-heading"><h2>{app.msg.menu}</h2><button type="button" onclick={() => menuOpen = false} aria-label={app.msg.close}>×</button></header>
+	<div class="stack"><button type="button" onclick={copy}>{app.msg.copyLink}</button><button type="button" onclick={share}>{app.msg.shareBluesky}</button>
+	{#if app.account?.did === post.authorDid}<button type="button" disabled={deleting} onclick={remove}>{deleting ? app.msg.loading : app.msg.delete}</button>{/if}</div>
 </NativeDialog>

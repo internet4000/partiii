@@ -58,13 +58,13 @@
 		<PostCard {post} thread ondelete={() => goto('/')} />
 		<section class="replies" aria-label={app.msg.replies}>
 			{#each post.replies as item (item.uri)}<article class="post-card">
-				<header class="post-header"><a class="identity" href={profilePath(item.authorDid)}>{item.handle}</a>{#if app.account?.did === item.authorDid}<button onclick={() => removeReply(item)}>{app.msg.delete}</button>{/if}</header>
+				<header class="post-header"><a class="identity" href={profilePath(item.authorDid)}>{item.handle}</a><time datetime={item.createdAt}>{Number.isFinite(Date.parse(item.createdAt)) ? new Intl.DateTimeFormat(app.locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(item.createdAt)) : ''}</time>{#if app.account?.did === item.authorDid}<button type="button" onclick={() => removeReply(item)}>{app.msg.delete}</button>{/if}</header>
 				<p class="post-text" dir="auto">{item.text}</p>
 			</article>{:else}<p class="muted section-padding">{app.msg.noReplies}</p>{/each}
 		</section>
 		{#if app.account}<form class="reply-form stack" onsubmit={(event) => { event.preventDefault(); void reply(); }}>
 			<label for="reply">{app.msg.writeReply}</label><textarea id="reply" bind:value={text} maxlength="1000" required dir="auto"></textarea>
-			<div class="form-actions"><span class="muted">{text.length}/1000</span><button class="primary" disabled={busy || !text.trim()}>{app.msg.reply}</button></div>
+			<div class="form-actions"><span class="muted" aria-live="polite">{text.length}/1000 {app.msg.characterCount}</span><button type="submit" class="primary" disabled={busy || !text.trim()}>{busy ? app.msg.publishing : app.msg.reply}</button></div>
 		</form>{:else}<div class="section-padding"><button onclick={() => app.dialog = 'login'}>{app.msg.connect}</button></div>{/if}
 	{:else if loading}<p class="empty" role="status">{app.msg.loading}</p>
 	{:else if !failed}<p class="empty">{app.msg.notFound}</p>{/if}
