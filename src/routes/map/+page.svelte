@@ -37,14 +37,15 @@
 <svelte:head><title>{app.msg.map} · partiii</title></svelte:head>
 <section class="map-page" aria-label={app.msg.map}>
 	<h1 class="sr-only">{app.msg.map}</h1>
-	<div class="map-toolbar"><button aria-haspopup="dialog" onclick={() => postsOpen = true}>{app.msg.profilePosts}</button><button disabled={locating} onclick={locate}>{locating ? app.msg.locating : app.msg.useMyLocation}</button>{#if locationError}<p class="error" role="alert">{locationError}</p>{/if}</div>
+	<div class="map-toolbar"><button type="button" aria-haspopup="dialog" onclick={() => postsOpen = true}>{app.msg.places}</button><button type="button" disabled={locating} onclick={locate}>{locating ? app.msg.locating : app.msg.useMyLocation}</button>{#if locationError}<p class="error" role="alert">{locationError}</p>{/if}</div>
 	{#key `${point?.latitude},${point?.longitude}`}<WorldMap posts={app.posts} selected={point} onpost={(post) => goto(postPath(post.uri))} />{/key}
 </section>
-<NativeDialog open={postsOpen} title={app.msg.profilePosts} onclose={() => postsOpen = false}>
-	<header class="dialog-heading"><h2>{app.msg.profilePosts}</h2><button onclick={() => postsOpen = false} aria-label={app.msg.close}>×</button></header>
+<NativeDialog open={postsOpen} title={app.msg.places} onclose={() => postsOpen = false}>
+	<header class="dialog-heading"><h2>{app.msg.places}</h2><button type="button" onclick={() => postsOpen = false} aria-label={app.msg.close}>×</button></header>
 	<div class="stack">
-		{#if app.feedError}<p role="alert">{app.msg.loadError}</p><button onclick={() => app.refresh()}>{app.msg.tryAgain}</button>
+		{#if app.feedError}<p role="alert">{app.msg.loadError}</p><button type="button" onclick={() => app.refresh()}>{app.msg.tryAgain}</button>
 		{:else if app.loading}<p role="status">{app.msg.loading}</p>
-		{:else}{#each app.posts.filter((post) => post.place) as post (post.uri)}<a href={postPath(post.uri)} onclick={() => postsOpen = false}>{post.text}</a>{:else}<p>{app.msg.noLocationPosts}</p>{/each}{/if}
+		{:else}{#each app.posts.filter((post) => post.place) as post (post.uri)}<a href={postPath(post.uri)} onclick={() => postsOpen = false}>{post.text}</a>{:else}<p>{app.msg.noLocationPosts}</p>{/each}
+			{#if app.hasMore}<button type="button" disabled={app.loadingMore} onclick={() => app.loadMore()}>{app.loadingMore ? app.msg.loadingMore : app.msg.loadMore}</button>{/if}{/if}
 	</div>
 </NativeDialog>
