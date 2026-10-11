@@ -1,6 +1,6 @@
 # partiii
 
-A small, mobile-first conversation client for public AT Protocol records. People can write a short post, reply, view a chronological public feed, open a profile, and optionally attach a place related to the post. There are no likes, follower counts, repost counts, ranking, or engagement feed.
+A mobile-first conversation client for public AT Protocol records. People can write a short post, reply, view a chronological public feed, open a profile, and optionally attach a place related to the post. There are no likes, follower counts, repost counts, ranking, or engagement feed.
 
 ## Run locally
 
@@ -30,7 +30,7 @@ OAuth metadata and authorization requests share the same collection-specific sco
 
 Coordinates in records are integer millionths of a degree (ATProto does not support floating-point record values). The UI converts these to degrees, preserving six decimal places without snapping to a grid. Existing rounded points remain readable.
 
-The prototype discovers repositories through the public Bluesky relay's collection listing, then reads public records from the PDS named by each DID document. It does not run an indexer or database. This is suitable for a small pilot but is not a complete or guaranteed global index: relay coverage and paging can omit participants. A larger network needs an openly documented, replaceable indexer or multiple independent network views.
+The app discovers repositories through the public Bluesky relay's collection listing, then reads public records from the PDS named by each DID document. It does not run an indexer or database, so relay coverage and paging can omit participants. A larger network needs an openly documented, replaceable indexer or multiple independent network views.
 
 The map uses the keyless OpenTopoMap raster tiles already supported by R4, with OpenStreetMap/OpenTopoMap attribution. People can tap the map, drag or keyboard-move a marker, enter coordinates, or explicitly request their device location. Browser geolocation is only requested after clicking “Use my location”; its accuracy is shown, and permission denial and timeouts leave manual selection available. Confirming the picker adds the point to the draft; publishing makes it public.
 
@@ -45,9 +45,9 @@ Navigation uses SvelteKit routes and ordinary links. Login, new posts, place sel
 
 The shared layout fills the viewport with an automatically sized header and a remaining-space content row. Styles use custom-property tokens, without authored pixel units or `calc()`. The minimal MapLibre styles are maintained locally rather than importing its stylesheet. MapLibre itself still writes pixel-based canvas dimensions and marker transforms at runtime; these are renderer internals.
 
-## Current pilot limitations
+## Current limitations
 
-- There is no app-owned report queue, labeler, or moderation service yet. Do not treat the prototype as a fully moderated public forum.
+- There is no app-owned report queue, labeler, or moderation service yet. Do not treat the app as a fully moderated public forum.
 - Feed discovery is relay-backed and bounded; it is not representative of everyone on AT Protocol or of humanity.
 - Profiles currently list the author's posts; reply records are shown in a thread when their authors are present in the discovered feed.
 - Map tiles require a network connection and use OpenTopoMap/OpenStreetMap third-party services. No API key is required.
