@@ -36,14 +36,19 @@ The map uses the keyless OpenTopoMap raster tiles already supported by R4, with 
 
 ## Interface and routes
 
-- `/`: chronological feed.
+- `/`: explore posts as a list, grid, or map; `q`, `view`, `post`, `lat`, and `lng` query parameters preserve shared state. A single view button sits beside search; clearing search preserves the current view.
 - `/map`: full-viewport map; `lat` and `lng` query parameters focus a place.
 - `/post/[did]/[rkey]`: a directly linkable conversation.
-- `/profile/[did]`: a directly linkable profile.
+- `/profile/[did]`: a directly linkable profile, with a list/grid/map view picker to the left of its action menu. The menu offers a Bluesky profile link and native sharing or copying the profile link.
+- `/about`: a short introduction to the project, available from the app menu, with a GitHub link from `package.json`'s `repository.url`.
 
-Navigation uses SvelteKit routes and ordinary links. Login, new posts, place selection, post action menus, and the map post list use native `<dialog>` elements opened with `showModal()`, including browser-managed focus, background inertness, and Escape dismissal. Place selection opens a native dialog above the compose dialog; cancelling preserves the previous point and draft. It includes keyboard-accessible coordinates and marker movement.
+Navigation uses SvelteKit routes and ordinary links; the app menu title links home. Login, new posts, replies, place selection, action menus, view selection, and map credits use native `<dialog>` elements opened with `showModal()`, including browser-managed focus, background inertness, and Escape dismissal. Dialogs leave space around the viewport edges. Posts and replies share a composer with a character count, Ctrl/⌘ + Enter submission, and drafts preserved when the dialog closes. The post composer's add/remove-place control sits beside submit. Reply dialogs show one prompt and leave the original post on the page; publishing errors keep the draft available for retry. Place selection opens a native dialog above the compose dialog; cancelling preserves the previous point and draft. It includes keyboard-accessible coordinates and marker movement.
 
-The shared layout fills the viewport with an automatically sized header and a remaining-space content row. Styles use custom-property tokens, without authored pixel units or `calc()`. The minimal MapLibre styles are maintained locally rather than importing its stylesheet. MapLibre itself still writes pixel-based canvas dimensions and marker transforms at runtime; these are renderer internals.
+Interface icons use Lucide's Svelte components, with text labels or accessible names on controls. Profile pictures come from the public `app.bsky.actor.profile` record and its avatar blob on the author's PDS; a missing profile or unavailable image leaves the author's posts accessible.
+
+The padded content area of a post card links to its detail page; the author's profile and contextual menu remain separate controls. Cards show a place icon when they have coordinates and a linked reply count when replies exist; post details display the attached place on a map. Posts and thread replies share an action menu with a visit-post link and author-only deletion. Reply and map actions stay in the contextual menu, alongside a single link-sharing action: native sharing when supported, copying otherwise. Cancelling native sharing leaves the menu available. Every map groups device location with its zoom controls, and requests location only after a click. A credits button opens attribution links for OpenStreetMap/SRTM, OpenTopoMap and its CC-BY-SA license, and MapLibre.
+
+The shared layout fills the viewport with a scrolling content area and bottom navigation. `src/style.css` imports the logical stylesheets in `src/styles/`: tokens, base elements, layout, posts, dialogs, maps, and MapLibre integration. Styles use custom-property tokens, without authored pixel units or `calc()`. The minimal MapLibre styles are maintained locally rather than importing its stylesheet. MapLibre itself still writes pixel-based canvas dimensions and marker transforms at runtime; these are renderer internals.
 
 ## Current limitations
 

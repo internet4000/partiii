@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
+	import MessageCircle from '@lucide/svelte/icons/message-circle';
 	import { goto } from '$app/navigation';
 	import { useApp } from '$lib/app.svelte';
-	import { createReply, deleteRecord, loadPost, type Post, type Reply } from '$lib/atproto';
-	import { profilePath } from '$lib/records';
+	import { createReply, loadPost, type Post, type Reply } from '$lib/atproto';
 	import PostCard from '$lib/components/PostCard.svelte';
+	import ComposerDialog from '$lib/components/ComposerDialog.svelte';
+	import WorldMap from '$lib/components/WorldMap.svelte';
 	import type { PageData } from './$types';
 	let { data }: { data: PageData } = $props();
 	const app = useApp();
@@ -12,14 +14,12 @@
 	let loading = $state(true);
 	let failed = $state(false);
 	let revision = $state(0);
-	let text = $state('');
-	let busy = $state(false);
-	let error = $state('');
+	let replyOpen = $state(false);
 	$effect(() => {
 		const uri = data.uri; revision;
 		let current = true;
 		post = untrack(() => app.posts.find((item) => item.uri === uri)) ?? null;
-		loading = true; failed = false; text = ''; error = '';
+		loading = true; failed = false; replyOpen = false;
 		void loadPost(uri).then((result) => {
 			if (!current) return;
 			// Preserve confirmed local replies while relay discovery catches up.
@@ -31,43 +31,31 @@
 		}).catch(() => { if (current) failed = true; }).finally(() => { if (current) loading = false; });
 		return () => { current = false; };
 	});
-	async function reply() {
-		if (!post || !app.account || !text.trim() || busy) return;
-		const target = post, account = app.account, content = text.trim();
-		busy = true; error = '';
-		try {
-			const saved = await createReply(target, content);
-			const updated = { ...target, replies: [...target.replies, { ...saved, authorDid: account.did, handle: account.handle, postUri: target.uri, text: content }] };
-			app.remember(updated);
-			if (data.uri === target.uri) { post = updated; text = ''; }
-		} catch { error = app.msg.replyError; }
-		finally { busy = false; }
+	async function reply(content: string) {
+		if (!post || !app.account) throw new Error('Sign in to reply.');
+		const target = post, account = app.account;
+		const saved = await createReply(target, content);
+		const latest = post?.uri === target.uri ? post : target;
+		const updated = { ...latest, replies: [...latest.replies, { ...saved, authorDid: account.did, handle: account.handle, postUri: target.uri, text: content }] };
+		app.remember(updated);
+		if (data.uri === target.uri) post = updated;
 	}
-	async function removeReply(item: Reply) {
-		try {
-			await deleteRecord(item.uri);
-			if (post?.uri === item.postUri) { post = { ...post, replies: post.replies.filter((reply) => reply.uri !== item.uri) }; app.remember(post); }
-		} catch { error = app.msg.deleteError; }
+	function forgetReply(item: Reply) {
+		if (post?.uri === item.postUri) { post = { ...post, replies: post.replies.filter((reply) => reply.uri !== item.uri) }; app.remember(post); }
 	}
 </script>
 
-<svelte:head><title>{app.msg.conversation} · partiii</title></svelte:head>
-<section class="thread-page">
-	<header class="page-heading"><a href="/">← {app.msg.feed}</a><h1>{app.msg.conversation}</h1></header>
+<svelte:head><title>{post ? `${post.handle}: ${post.text.slice(0, 80)}` : app.msg.post} · partiii</title></svelte:head>
+<section class="thread-page" aria-label={app.msg.post}>
 	{#if post}
 		<PostCard {post} thread ondelete={() => goto('/')} />
+		{#if post.place}<div class="post-map"><WorldMap selected={post.place} focus={post.place} /></div>{/if}
 		<section class="replies" aria-label={app.msg.replies}>
-			{#each post.replies as item (item.uri)}<article class="post-card">
-				<header class="post-header"><a class="identity" href={profilePath(item.authorDid)}>{item.handle}</a><time datetime={item.createdAt}>{Number.isFinite(Date.parse(item.createdAt)) ? new Intl.DateTimeFormat(app.locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(item.createdAt)) : ''}</time>{#if app.account?.did === item.authorDid}<button type="button" onclick={() => removeReply(item)}>{app.msg.delete}</button>{/if}</header>
-				<p class="post-text" dir="auto">{item.text}</p>
-			</article>{:else}<p class="muted section-padding">{app.msg.noReplies}</p>{/each}
+			{#each post.replies as item (item.uri)}<PostCard post={item} thread ondelete={() => forgetReply(item)} />{/each}
 		</section>
-		{#if app.account}<form class="reply-form stack" onsubmit={(event) => { event.preventDefault(); void reply(); }}>
-			<label for="reply">{app.msg.writeReply}</label><textarea id="reply" bind:value={text} maxlength="1000" required dir="auto"></textarea>
-			<div class="form-actions"><span class="muted" aria-live="polite">{text.length}/1000 {app.msg.characterCount}</span><button type="submit" class="primary" disabled={busy || !text.trim()}>{busy ? app.msg.publishing : app.msg.reply}</button></div>
-		</form>{:else}<div class="section-padding"><button onclick={() => app.dialog = 'login'}>{app.msg.connect}</button></div>{/if}
+		<div class="thread-reply section-padding"><button type="button" class="reply-trigger" aria-haspopup="dialog" onclick={() => { if (app.account) replyOpen = true; else app.dialog = 'login'; }}><MessageCircle aria-hidden="true" />{app.msg.writeReply}</button></div>
+		{#key data.uri}<ComposerDialog open={replyOpen} reply={true} onsubmit={reply} onclose={() => replyOpen = false} />{/key}
 	{:else if loading}<p class="empty" role="status">{app.msg.loading}</p>
 	{:else if !failed}<p class="empty">{app.msg.notFound}</p>{/if}
 	{#if failed}<div class="section-padding error" role="alert">{app.msg.loadError}<button onclick={() => revision++}>{app.msg.tryAgain}</button></div>{/if}
-	{#if error}<p class="section-padding error" role="alert">{error}</p>{/if}
 </section>

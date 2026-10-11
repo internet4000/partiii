@@ -1,0 +1,17 @@
+.app-shell { display: grid; grid-template-rows: var(--shell-rows); inline-size: var(--full); block-size: var(--viewport); padding-block-start: var(--safe-top); padding-block-end: var(--safe-bottom); padding-inline: var(--safe-left) var(--safe-right); }
+.search-toolbar { display: flex; align-items: center; gap: var(--space-2); border-block-end: var(--border); }
+.search-form { display: flex; flex: 1 1 var(--zero); align-items: center; gap: var(--space-2); min-inline-size: var(--zero); }
+.search-field { display: flex; align-items: center; flex: 1 1 var(--zero); min-inline-size: var(--zero); border: var(--border); border-radius: var(--radius); background: var(--surface); }
+.search-field input { border: none; background: var(--transparent); flex: 1 1 var(--zero); }
+.search-field input::-webkit-search-cancel-button { appearance: none; }
+.search-field button { border: none; background: var(--transparent); min-inline-size: var(--touch); padding: var(--space-2); }
+.view-button, .search-form > button { flex-shrink: var(--zero); min-inline-size: var(--touch); padding: var(--space-2); }
+.bottom-nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-1); padding: var(--space-2) var(--page-space); border-block-start: var(--border); background: var(--surface); }
+.bottom-nav a, .bottom-nav button { display: grid; place-items: center; gap: var(--space-1); text-align: center; min-block-size: var(--touch); padding-inline: var(--space-1); text-decoration: none; color: var(--muted); border-radius: var(--radius); }
+.bottom-nav a[aria-current] { color: var(--text); background: var(--accent-soft); }
+main { min-inline-size: var(--zero); min-block-size: var(--zero); overflow: auto; }
+.feed-page, .thread-page { display: flex; flex-direction: column; min-block-size: var(--full); }
+.page-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--page-space); border-block-end: var(--border); }
+.empty { flex-grow: var(--one); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: var(--space-4); padding: var(--page-space); color: var(--muted); }
+.empty.error { color: var(--error); }
+.about-content { max-inline-size: var(--reading-inline); }

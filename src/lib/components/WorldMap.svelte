@@ -1,13 +1,22 @@
 <script lang="ts">
 	import { useApp } from '$lib/app.svelte';
 	import { onMount } from 'svelte';
+	import Minus from '@lucide/svelte/icons/minus';
+	import Plus from '@lucide/svelte/icons/plus';
+	import LocateFixed from '@lucide/svelte/icons/locate-fixed';
+	import Info from '@lucide/svelte/icons/info';
+	import X from '@lucide/svelte/icons/x';
 	import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 	import type { Place, Post } from '$lib/atproto';
+	import { postPath, profilePath } from '$lib/records';
 	import { precisePlace } from '$lib/place';
+	import { getCurrentLocation, locationErrorKey, type DeviceLocation } from '$lib/geolocation';
+	import NativeDialog from './NativeDialog.svelte';
 	const app = useApp();
-	let { posts = [], selectable = false, selected, focus, onselect = () => {}, onpost = () => {} }: {
-		posts?: Post[]; selectable?: boolean; selected?: Place; focus?: Place;
+	let { posts = [], selectable = false, selected, focus, activePostUri, onselect = () => {}, onpost = () => {}, onlocate }: {
+		posts?: Post[]; selectable?: boolean; selected?: Place; focus?: Place; activePostUri?: string;
 		onselect?: (point: Place) => void; onpost?: (post: Post) => void;
+		onlocate?: (point: DeviceLocation) => void | Promise<void>;
 	} = $props();
 	let target: HTMLDivElement;
 	let error = $state(false);
@@ -15,19 +24,61 @@
 	let maplibregl: typeof import('maplibre-gl');
 	let ready = $state(false);
 	let markers: import('maplibre-gl').Marker[] = [];
+	let popup: import('maplibre-gl').Popup | undefined;
 	let selectedMarker: import('maplibre-gl').Marker | undefined;
 	let resizeObserver: ResizeObserver | undefined;
 	let resizeFrame = 0;
+	let locating = $state(false);
+	let locationError = $state('');
+	let creditsOpen = $state(false);
+	let disposed = false;
+	async function locate() {
+		if (!ready || locating) return;
+		locating = true; locationError = '';
+		try {
+			const result = await getCurrentLocation();
+			if (disposed) return;
+			map?.jumpTo({ center: [result.longitude, result.latitude], zoom: 15 });
+			await onlocate?.(result);
+		} catch (cause) { if (!disposed) locationError = app.msg[locationErrorKey(cause)]; }
+		finally { if (!disposed) locating = false; }
+	}
 
+	function showPopup(post: Post) {
+		if (!map || !post.place) return;
+		const card = document.createElement('article');
+		card.className = 'map-popup-card';
+		const heading = document.createElement('a');
+		heading.className = 'identity';
+		heading.href = profilePath(post.authorDid);
+		heading.textContent = post.handle;
+		const text = document.createElement('p');
+		text.className = 'post-text';
+		text.dir = 'auto';
+		text.textContent = post.text;
+		const link = document.createElement('a');
+		link.className = 'reply-link';
+		link.href = postPath(post.uri);
+		link.textContent = app.msg.openPost;
+		card.append(heading, text, link);
+		popup?.remove();
+		popup = new maplibregl.Popup({ closeButton: true, closeOnClick: false, maxWidth: '20rem' })
+			.setLngLat([post.place.longitude, post.place.latitude])
+			.setDOMContent(card)
+			.addTo(map);
+	}
 	$effect(() => {
 		const contributions = posts;
+		const active = activePostUri;
 		if (!ready || !map) return;
 		markers.forEach((marker) => marker.remove());
 		markers = contributions.filter((post) => post.place).map((post) => {
 			const element = document.createElement('button');
 			element.type = 'button'; element.className = 'map-marker'; element.setAttribute('aria-label', post.place?.label || post.text.slice(0, 100));
-			element.addEventListener('click', (event) => { event.stopPropagation(); onpost(post); });
-			return new maplibregl.Marker({ element }).setLngLat([post.place!.longitude, post.place!.latitude]).addTo(map!);
+			element.addEventListener('click', (event) => { event.stopPropagation(); onpost(post); showPopup(post); });
+			const marker = new maplibregl.Marker({ element }).setLngLat([post.place!.longitude, post.place!.latitude]).addTo(map!);
+			if (post.uri === active) showPopup(post);
+			return marker;
 		});
 	});
 	$effect(() => {
@@ -66,7 +117,6 @@
 	});
 
 	onMount(() => {
-		let disposed = false;
 		void (async () => {
 			try {
 				maplibregl = await import('maplibre-gl');
@@ -82,7 +132,7 @@
 					},
 					center: selected ? [selected.longitude, selected.latitude] : [0, 18],
 					zoom: selected ? (selectable ? 15 : 12) : 1.4,
-					attributionControl: { compact: false }
+					attributionControl: false
 				});
 				map = instance;
 				instance.on('style.load', () => { ready = true; instance.resize(); });
@@ -94,12 +144,27 @@
 				resizeObserver.observe(target);
 			} catch { error = true; }
 		})();
-		return () => { disposed = true; cancelAnimationFrame(resizeFrame); resizeObserver?.disconnect(); markers.forEach((marker) => marker.remove()); selectedMarker?.remove(); map?.remove(); };
+		return () => { disposed = true; cancelAnimationFrame(resizeFrame); resizeObserver?.disconnect(); markers.forEach((marker) => marker.remove()); popup?.remove(); selectedMarker?.remove(); map?.remove(); };
 	});
 </script>
 
 <div class="map-shell" class:selectable>
 	<div class="map-canvas" bind:this={target} role="application" aria-label={selectable ? app.msg.choosePlace : app.msg.map}></div>
 	{#if error}<div class="map-error" role="alert">{app.msg.mapUnavailable}</div>
-	{:else}<div class="map-zoom"><button type="button" disabled={!ready} aria-label={app.msg.zoomIn} onclick={() => map?.zoomIn({ duration: 0 })}>+</button><button type="button" disabled={!ready} aria-label={app.msg.zoomOut} onclick={() => map?.zoomOut({ duration: 0 })}>−</button></div>{/if}
+	{:else}<div class="map-controls">
+		<button type="button" disabled={!ready} aria-label={app.msg.zoomIn} title={app.msg.zoomIn} onclick={() => map?.zoomIn({ duration: 0 })}><Plus aria-hidden="true" /></button>
+		<button type="button" disabled={!ready} aria-label={app.msg.zoomOut} title={app.msg.zoomOut} onclick={() => map?.zoomOut({ duration: 0 })}><Minus aria-hidden="true" /></button>
+		<button type="button" disabled={!ready || locating} aria-label={locating ? app.msg.locating : app.msg.useMyLocation} title={app.msg.useMyLocation} aria-busy={locating} onclick={locate}><LocateFixed aria-hidden="true" /></button>
+	</div>{/if}
+	<button type="button" class="map-credits" aria-label={app.msg.mapCredits} title={app.msg.mapCredits} aria-haspopup="dialog" onclick={() => creditsOpen = true}><Info aria-hidden="true" /></button>
+	{#if locationError}<div class="map-notice"><p class="error" role="alert">{locationError}</p><button type="button" aria-label={app.msg.close} onclick={() => locationError = ''}><X aria-hidden="true" /></button></div>{/if}
 </div>
+
+<NativeDialog open={creditsOpen} title={app.msg.mapCredits} onclose={() => creditsOpen = false}>
+	<header class="dialog-heading"><h2>{app.msg.mapCredits}</h2><form method="dialog"><button aria-label={app.msg.close}><X aria-hidden="true" /></button></form></header>
+	<div class="stack">
+		<p>{app.msg.mapData}: © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>, SRTM</p>
+		<p>{app.msg.mapStyle}: © <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)</p>
+		<p>{app.msg.mapEngine}: <a href="https://maplibre.org">MapLibre GL JS</a></p>
+	</div>
+</NativeDialog>

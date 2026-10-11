@@ -1,0 +1,17 @@
+/* Only the MapLibre primitives used by this app; no vendor stylesheet. */
+.maplibregl-map { overflow: hidden; position: relative; -webkit-tap-highlight-color: var(--transparent); }
+.maplibregl-canvas { position: absolute; inset-block-start: var(--zero); inset-inline-start: var(--zero); }
+.maplibregl-canvas-container.maplibregl-interactive { cursor: grab; user-select: none; }
+.maplibregl-canvas-container.maplibregl-interactive:active { cursor: grabbing; }
+.maplibregl-canvas-container.maplibregl-touch-zoom-rotate .maplibregl-canvas { touch-action: none; }
+.maplibregl-marker { position: absolute; inset-block-start: var(--zero); inset-inline-start: var(--zero); will-change: transform; }
+.map-marker { padding: var(--zero); min-block-size: var(--touch); min-inline-size: var(--touch); border: none; background: var(--transparent); border-radius: var(--circle); cursor: pointer; display: grid; place-items: center; }
+.map-marker::after { content: ''; inline-size: var(--marker-size); block-size: var(--marker-size); background: var(--accent); border-radius: var(--circle); box-shadow: var(--marker-ring); }
+.map-marker:hover { background: var(--transparent); }
+.selected-marker::after { background: var(--selected); box-shadow: var(--marker-selected-ring); }
+.maplibregl-popup { position: absolute; inset-block-start: var(--zero); inset-inline-start: var(--zero); display: flex; will-change: transform; pointer-events: none; }
+.maplibregl-popup-content { position: relative; pointer-events: auto; background: var(--surface); border: var(--border); border-radius: var(--radius); box-shadow: var(--dialog-shadow); padding: var(--space-3); }
+.maplibregl-popup-close-button { position: absolute; inset-block-start: var(--space-1); inset-inline-end: var(--space-1); min-block-size: var(--touch); min-inline-size: var(--touch); border: none; background: var(--transparent); }
+.maplibregl-popup-tip { display: none; }
+.map-popup-card { display: flex; flex-direction: column; gap: var(--space-2); max-inline-size: var(--popup-inline); }
+.map-popup-card .post-text { padding-block: var(--zero); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }

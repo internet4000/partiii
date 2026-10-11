@@ -234,8 +234,8 @@ export async function loadNetworkPage(cursors: NetworkCursor = {}): Promise<Netw
 }
 
 export async function loadProfile(did: string) {
-	const [{ handle }, posts, replies] = await Promise.all([
-		getPdsAndHandle(did), recordsForDid(did, POST_COLLECTION, 100), recordsForDid(did, REPLY_COLLECTION, 100)
+	const [{ handle }, posts, replies, avatar] = await Promise.all([
+		getPdsAndHandle(did), recordsForDid(did, POST_COLLECTION, 100), recordsForDid(did, REPLY_COLLECTION, 100), loadAvatar(did).catch(() => undefined)
 	]);
 	const replyRows = replies.map((row) => ({ row, parent: row.value.post as { uri?: string } | undefined })).filter(({ row, parent }) => parent?.uri && typeof row.value.text === 'string' && typeof row.value.createdAt === 'string');
 	const profilePosts: Post[] = [];
@@ -243,7 +243,18 @@ export async function loadProfile(did: string) {
 		if (typeof row.value.text !== 'string' || typeof row.value.createdAt !== 'string') continue;
 		profilePosts.push({ uri: row.uri, cid: row.cid, authorDid: did, handle, text: row.value.text, createdAt: row.value.createdAt, place: readPlace(row.value.place), replies: [] });
 	}
-	return { did, handle, posts: profilePosts, replies: replyRows };
+	return { did, handle, avatar, posts: profilePosts, replies: replyRows };
+}
+
+async function loadAvatar(did: string): Promise<string | undefined> {
+	const { pds } = await getPdsAndHandle(did);
+	const profile = await xrpc<{ value: { avatar?: { ref?: { $link?: string }; cid?: string } } }>(pds, 'com.atproto.repo.getRecord', { repo: did, collection: 'app.bsky.actor.profile', rkey: 'self' });
+	const cid = profile.value.avatar?.ref?.$link ?? profile.value.avatar?.cid;
+	if (typeof cid !== 'string' || !cid) return;
+	const url = new URL(`${pds.replace(/\/$/, '')}/xrpc/com.atproto.sync.getBlob`);
+	url.searchParams.set('did', did);
+	url.searchParams.set('cid', cid);
+	return url.href;
 }
 
 export async function loadPost(uri: string): Promise<Post | null> {

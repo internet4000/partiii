@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "license": "AGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/internet4000/partiii"
+  },
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
@@ -23,6 +27,7 @@
   "type": "module",
   "dependencies": {
     "@atproto/oauth-client-browser": "^0.5.9",
+    "@lucide/svelte": "^1.55.0",
     "maplibre-gl": "^6.13.0"
   }
 }

@@ -1,0 +1,34 @@
+* { box-sizing: border-box; }
+html, body { margin: var(--zero); inline-size: var(--full); block-size: var(--full); }
+body { overflow: hidden; }
+button, input, textarea, select { font: inherit; color: inherit; }
+button, select { cursor: pointer; }
+button, select, input, textarea {
+	border: var(--border);
+	border-radius: var(--radius);
+	background: var(--surface);
+	padding: var(--space-2) var(--space-3);
+	min-block-size: var(--touch);
+	min-inline-size: var(--zero);
+}
+button { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); overflow-wrap: anywhere; }
+.lucide { inline-size: var(--icon-size); block-size: var(--icon-size); flex-shrink: var(--zero); }
+button:hover { background: var(--accent-soft); }
+button:disabled { opacity: var(--disabled); cursor: not-allowed; }
+a { color: var(--accent); text-underline-offset: var(--space-1); }
+:focus-visible { outline: var(--focus-ring); outline-offset: var(--space-1); }
+main:focus { outline: none; }
+h1, h2, p { margin: var(--zero); }
+h1, h2 { font-size: var(--text-heading); font-weight: var(--weight-strong); line-height: var(--leading-heading); overflow-wrap: anywhere; }
+textarea { inline-size: var(--full); min-block-size: var(--input-block); resize: vertical; }
+input { inline-size: var(--full); }
+.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.primary:hover { background: var(--text); }
+.muted, time { color: var(--muted); font-size: var(--text-small); }
+.error { color: var(--error); overflow-wrap: anywhere; }
+.stack { display: flex; flex-direction: column; gap: var(--space-3); }
+.form-actions, .row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.section-padding { padding: var(--space-4) var(--page-space); }
+.sr-only { position: absolute; inline-size: var(--hidden-size); block-size: var(--hidden-size); overflow: hidden; clip-path: var(--hidden-clip); white-space: nowrap; }
+.skip-link { position: fixed; inset-block-start: var(--space-2); inset-inline-start: var(--space-2); clip-path: var(--hidden-clip); z-index: var(--layer-overlay); background: var(--surface); padding: var(--space-3); }
+.skip-link:focus { clip-path: none; }
