@@ -66,6 +66,6 @@
 			<button type="button" disabled={!valid} onclick={applyCoordinates}>{app.msg.showPlace}</button>
 		</div>
 		<p class="muted">{app.msg.placeHelp}</p>
-		<div class="form-actions"><button type="button" onclick={onclose}>{app.msg.cancel}</button><button class="primary" disabled={!valid}>{app.msg.savePlace}</button></div>
+		<div class="form-actions"><button type="button" onclick={onclose}>{app.msg.cancel}</button><button type="submit" class="primary" disabled={!valid}>{app.msg.savePlace}</button></div>
 	</form>
 </NativeDialog>

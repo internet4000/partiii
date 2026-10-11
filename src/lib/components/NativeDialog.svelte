@@ -1,13 +1,15 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import { tick, type Snippet } from 'svelte';
 	let { open, title, onclose, children, class: className = '' }: {
 		class?: string; open: boolean; title: string; onclose: () => void; children: Snippet;
 	} = $props();
 	let element: HTMLDialogElement;
 	$effect(() => {
 		if (!element) return;
-		if (open && !element.open) element.showModal();
-		else if (!open && element.open) element.close();
+		if (open && !element.open) {
+			element.showModal();
+			void tick().then(() => element.querySelector<HTMLElement>('textarea, input, select, button, a[href]')?.focus());
+		} else if (!open && element.open) element.close();
 	});
 </script>
 

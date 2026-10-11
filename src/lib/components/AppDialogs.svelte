@@ -43,7 +43,7 @@
 		<label for="handle">{app.msg.handle}</label>
 		<input id="handle" bind:value={handle} autocomplete="username" autocapitalize="none" spellcheck="false" required placeholder="you.bsky.social" />
 		{#if app.authError}<p class="error" role="alert">{app.msg.signInError}<br />{app.authError}</p>{/if}
-		<button class="primary" disabled={busy || !handle.trim()}>{busy ? app.msg.connecting : app.msg.connect}</button>
+		<button type="submit" class="primary" disabled={busy || !handle.trim()}>{busy ? app.msg.connecting : app.msg.connect}</button>
 	</form>
 </NativeDialog>
 
@@ -51,11 +51,12 @@
 	<header class="dialog-heading"><h2>{app.msg.prompt}</h2><button type="button" onclick={() => app.dialog = null} aria-label={app.msg.close}>×</button></header>
 	<form class="stack" onsubmit={(event) => { event.preventDefault(); void publish(); }}>
 		<label for="new-post">{app.msg.write}</label>
-		<textarea id="new-post" bind:value={text} maxlength="1000" required dir="auto"></textarea>
-		{#if place}<div class="row"><span>{place.latitude}°, {place.longitude}°</span><button type="button" onclick={() => place = undefined}>{app.msg.removePlace}</button></div>{/if}
+		<textarea id="new-post" bind:value={text} maxlength="1000" required dir="auto" aria-describedby="new-post-count new-post-privacy"></textarea>
+		<p id="new-post-privacy" class="muted">{app.msg.privacy}</p>
+		{#if place}<div class="row"><span>{app.msg.location}: {place.latitude}°, {place.longitude}°</span><button type="button" onclick={() => place = undefined}>{app.msg.removePlace}</button></div>{/if}
 		<button type="button" aria-haspopup="dialog" onclick={() => showPlace = true}>{place ? app.msg.changePlace : app.msg.place}</button>
 		{#if error}<p class="error" role="alert">{error}</p>{/if}
-		<div class="form-actions"><span class="muted">{text.length}/1000</span><button class="primary" disabled={!app.account || !text.trim() || busy}>{busy ? '…' : app.msg.post}</button></div>
+		<div class="form-actions"><span id="new-post-count" class="muted" aria-live="polite">{text.length}/1000 {app.msg.characterCount}</span><button type="submit" class="primary" disabled={!app.account || !text.trim() || busy}>{busy ? app.msg.publishing : app.msg.post}</button></div>
 	</form>
 </NativeDialog>
 
